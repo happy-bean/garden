@@ -3,6 +3,7 @@ package org.garden.conf;
 import org.garden.nodes.Node;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author wgt
@@ -11,9 +12,10 @@ import java.util.*;
  **/
 public class NodesManager {
 
-
-    private static Nodes<Long, Node> nodeGroup = new Hashtable<Long,Node>();
-
+    /**
+     * 节点集合
+     */
+    private static Nodes<Long, Node> nodeGroup = new Nodes<>();
 
     /**
      * 新增节点信息
@@ -26,13 +28,24 @@ public class NodesManager {
     /**
      * 删除节点信息
      */
-    public static Nodes<Long, Node> delNode() {
-
+    public static Map<Long, Node> delNode(Node node) {
+        nodeGroup.remove(node.getNodeId(), node);
         return nodeGroup;
     }
 
+    /**
+     * 更新节点
+     */
+    public static Nodes<Long, Node> updNode(Node node) {
+        nodeGroup.replace(node.getNodeId(), node);
+        return nodeGroup;
+    }
 
-    static abstract class Nodes<K, V> implements Map<K, V> {
+    public static Nodes<Long, Node> getNodeGroup() {
+        return nodeGroup;
+    }
+
+    static class Nodes<K, V> extends ConcurrentHashMap<K, V> {
 
     }
 }

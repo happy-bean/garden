@@ -12,32 +12,42 @@ import org.garden.handler.ServerCenterHandler;
  * @date 2018-03-10
  * @description 服务端
  **/
-public class GardenServer {
+public class GardenServer extends Thread {
 
     /**
      * 默认 9700 端口
      */
     private final static int PORT = 9700;
 
-    private static EventLoopGroup bossGroup = new NioEventLoopGroup();
-    private static EventLoopGroup workGroup = new NioEventLoopGroup();
+    private  EventLoopGroup bossGroup = new NioEventLoopGroup();
+    private  EventLoopGroup workGroup = new NioEventLoopGroup();
+
+    @Override
+    public void run() {
+        try {
+            startup();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * 启动服务
      */
-    public static void start() throws InterruptedException {
+    public  void startup() throws InterruptedException {
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(bossGroup, workGroup);
         bootstrap.channel(NioServerSocketChannel.class);
         bootstrap.childHandler(new ServerCenterHandler());
         Channel channel = bootstrap.bind(PORT).sync().channel();
         channel.closeFuture().sync();
+
     }
 
     /**
      * 关闭资源
      */
-    public static void close() {
+    public  void close() {
         bossGroup.shutdownGracefully();
         workGroup.shutdownGracefully();
     }

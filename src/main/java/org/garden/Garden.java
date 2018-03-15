@@ -1,12 +1,9 @@
 package org.garden;
 
 import org.garden.server.GardenServer;
-import org.garden.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.util.Map;
 
 /**
  * @author wgt
@@ -20,15 +17,19 @@ public class Garden implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Garden.class);
 
+    private GardenServer gardenServer = new GardenServer();
+
+    public Garden() {
+
+    }
+
     /**
-     * 初始化 配置文件
+     * 初始化
      *
      * @param
      */
     public void init() {
-        ClassLoader classLoader = Garden.class.getClassLoader();
-        InputStream resourceAsStream = classLoader.getResourceAsStream("garden.properties");
-        Map<String, Object> map = PropertiesUtil.readPropertiesFile(resourceAsStream);
+
     }
 
     /**
@@ -37,13 +38,14 @@ public class Garden implements AutoCloseable {
      * @param
      */
     public void register() throws InterruptedException {
+
         //先启动服务
-        GardenServer.start();
+        gardenServer.start();
     }
 
     @Override
     public void close() throws Exception {
-        GardenServer.close();
+        gardenServer.close();
     }
 
     /**
