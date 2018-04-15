@@ -23,7 +23,7 @@ public class PaxosCoreComponent implements PaxosCore{
     //提供paxos存储相关服务
     private PaxosStoreInf paxosStoreInf = new DefaultPaxosStore();
 
-    private ElectionForAcceptor electionServiceForAcceptor;
+    private ElectionForAcceptor electionServiceForAcceptor = new ElectionServiceForAcceptor();
 
     //获取当前成员
     @Override
@@ -43,7 +43,7 @@ public class PaxosCoreComponent implements PaxosCore{
         paxosStoreInf.setCurrentPaxosMember(paxosMember);
     }
 
-    //保存当前成员接受到的最大提议号
+    //保存当前成员
     @Override
     public void setOtherPaxosMemberList(List<PaxosMember> otherMemberList) {
         paxosStoreInf.setOtherPaxosMemberList(otherMemberList);

@@ -80,8 +80,8 @@ public class GardenManager {
         // --------
 
         //加载选举信息
-        ElectionInfoLoader electionInfoLoader = new ElectionInfoLoader();
-        electionInfoLoader.loadElectionInfo();
+//        ElectionInfoLoader electionInfoLoader = new ElectionInfoLoader();
+//        electionInfoLoader.loadElectionInfo();
 
         //开启心跳处理器
         System.out.println("--------");

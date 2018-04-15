@@ -12,7 +12,7 @@ import org.garden.util.RequestAndResponseUtil;
 /**
  * @author wgt
  * @date 2018-04-10
- * @description
+ * @description 接收者处理选举类
  **/
 public class ElectionServiceForAcceptor implements ElectionForAcceptor {
 
@@ -60,7 +60,7 @@ public class ElectionServiceForAcceptor implements ElectionForAcceptor {
             /**
              * 当前已经保存的提议号大于请求的提议号则回复deny
              */
-            LOGGER.debug(">deny firstPhase election request,current maxAcceptFirstPhaseNum is bigger than num," + logStr
+            LOGGER.debug("deny firstPhase election request,current maxAcceptFirstPhaseNum is bigger than num," + logStr
                     + ",maxAcceptFirstPhaseNum is[" + maxAcceptFirstPhaseNum + "]");
 
             return denyResponse;
@@ -137,14 +137,14 @@ public class ElectionServiceForAcceptor implements ElectionForAcceptor {
         long electionRound = request.getElectionRound();
         boolean flag = this.processAfterElectionSecondPhase(true, electionRound, realNum, realValue, false);
         if (!flag) {
-            LOGGER.error(">==================invoke processAfterElectionSecondPhase of processElectionResultRequest err,param[" + logStr + "]");
+            LOGGER.error("invoke processAfterElectionSecondPhase of processElectionResultRequest err,param[" + logStr + "]");
             return failResponse;
         }
 
         /**
          * 保存结果成功后，响应发送者成功
          */
-        LOGGER.info(">succ save electionResult," + logStr);
+        LOGGER.info("succ save electionResult," + logStr);
         return RequestAndResponseUtil.composeElectionResultResponse(CodeInfo.SUCCESS_CODE);
     }
 
@@ -152,7 +152,7 @@ public class ElectionServiceForAcceptor implements ElectionForAcceptor {
                                                     boolean shouldSendResult) {
         String logStr = "electionRound[" + electionRound + "],realNum[" + realNum + "],realValue[" + realValue + "],electionSuccessFlag["
                 + electionSuccessFlag + "],shouldSendResult[" + shouldSendResult + "]";
-        LOGGER.info(">begin processAfterElectionSecondPhase," + logStr);
+        LOGGER.info("begin processAfterElectionSecondPhase," + logStr);
 
         if (!electionSuccessFlag) {
             /**
@@ -164,7 +164,7 @@ public class ElectionServiceForAcceptor implements ElectionForAcceptor {
 
         boolean saveElectionRes = paxosStore.saveElectionResultAndSetStatus(electionRound, realNum, realValue);
         if (!saveElectionRes) {
-            LOGGER.error(">==================processAfterElectionSecondPhase saveElectionResultAndSetStatus err," + logStr);
+            LOGGER.error("processAfterElectionSecondPhase saveElectionResultAndSetStatus err," + logStr);
             return false;
         }
 

@@ -71,6 +71,10 @@ public class HeartBeatProcessor {
         }
 
         this.upStreamHandler = upStreamHandler;
+        PaxosMember paxosMember = upStreamHandler.getPaxosCoreComponent().getCurrentPaxosMember();
+        List<PaxosMember> paxosMemberList = upStreamHandler.getPaxosCoreComponent().getOtherPaxosMemberList();
+        member.setCurrentPaxosMember(paxosMember);
+        member.setOtherPaxosMemberList(paxosMemberList);
         PaxosMember currentMember = member.getCurrentPaxosMember();
         List<PaxosMember> otherMemberList = member.getOtherPaxosMemberList();
 
