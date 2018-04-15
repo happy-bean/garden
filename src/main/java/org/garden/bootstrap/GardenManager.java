@@ -80,17 +80,17 @@ public class GardenManager {
         // --------
 
         //加载选举信息
-//        ElectionInfoLoader electionInfoLoader = new ElectionInfoLoader();
-//        electionInfoLoader.loadElectionInfo();
+        ElectionInfoLoader electionInfoLoader = new ElectionInfoLoader();
+        electionInfoLoader.loadElectionInfo();
 
         //开启心跳处理器
         System.out.println("--------");
         HeartBeatProcessor heartBeatProcessor = new HeartBeatProcessor();
         UpStreamHandler upStreamHandler = new UpStreamHandler(paxosCore);
-        System.out.println("======");
         heartBeatProcessor.start(upStreamHandler);
 
         //开启选举处理器
+        System.out.println("======");
         UpStreamHandler upStreamHandlerForElection = new UpStreamHandler(paxosCore);
         ElectionProcessor electionProcessor = new ElectionProcessor();
         electionProcessor.start(upStreamHandlerForElection);

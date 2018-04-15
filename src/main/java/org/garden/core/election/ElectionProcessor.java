@@ -59,6 +59,12 @@ public class ElectionProcessor {
         //检查
         if (upStreamHandler == null) {
             throw new IllegalArgumentException("upstreamHandler is null");
+        }else {
+            PaxosMember paxosMember = upStreamHandler.getPaxosCoreComponent().getCurrentPaxosMember();
+            List<PaxosMember> paxosMemberList = upStreamHandler.getPaxosCoreComponent().getOtherPaxosMemberList();
+            memberService.setCurrentPaxosMember(paxosMember);
+            memberService.setOtherPaxosMemberList(paxosMemberList);
+            paxosStore.setCurrentPaxosMember(paxosMember);
         }
 
         //开启定时查看与leader连接状态,如果连不上了，则进行选举
@@ -70,7 +76,7 @@ public class ElectionProcessor {
 
         @Override
         public void run() {
-            LOGGER.debug("begin election check");
+            LOGGER.info("begin election check");
 
             /**
              * 1.开始处理结点的status状态，两个方面<br/>
@@ -79,21 +85,26 @@ public class ElectionProcessor {
              */
             PaxosMember currentMember = memberService.getCurrentPaxosMember();
             if (currentMember.getRole() == PaxosMemberRole.LEADER) {
+                System.out.println("======11");
+
                 processStatusForLeader();
             } else {
                 processStatusForNotLeader();
             }
 
+            System.out.println("======1122");
+
             //处理选举
             long electionIntervalBetweenRound = PaxosConflictionUtil.electionIntervalBetweenRound;
-            LOGGER.debug("next electionInterval[" + electionIntervalBetweenRound + "]");
+            LOGGER.info("next electionInterval[" + electionIntervalBetweenRound + "]");
             if (currentMember.getRole() == PaxosMemberRole.LEADER) {
                 //当前结点是leader的话不需要主动发起选举
+                LOGGER.info("local member is leader");
                 return;
             }
             processElection();
 
-            LOGGER.debug("end election check");
+            LOGGER.info("end election check");
         }
 
     }
@@ -123,6 +134,9 @@ public class ElectionProcessor {
         }
     }
 
+    /**
+     * 设置不是leader状态
+     * */
     private void processStatusForNotLeader() {
         PaxosMember currentMember = paxosStore.getCurrentPaxosMember();
         PaxosMember leaderMember = currentMember.getLeaderMember();
