@@ -1,8 +1,8 @@
 package org.garden;
 
-import org.garden.server.GardenServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.garden.server.GardenServerCenter;
+import org.apache.log4j.Logger;
+import org.garden.bootstrap.GardenManager;
 
 
 /**
@@ -15,20 +15,11 @@ import org.slf4j.LoggerFactory;
  **/
 public class Garden implements AutoCloseable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Garden.class);
+    private static final Logger LOGGER = Logger.getLogger(Garden.class);
 
-    private GardenServer gardenServer = new GardenServer();
+    private GardenServerCenter gardenServerCenter = new GardenServerCenter();
 
     public Garden() {
-
-    }
-
-    /**
-     * 初始化
-     *
-     * @param
-     */
-    public void init() {
 
     }
 
@@ -37,49 +28,19 @@ public class Garden implements AutoCloseable {
      *
      * @param
      */
-    public void register() throws InterruptedException {
+    public void register() throws Exception {
 
-        //先启动服务
-        gardenServer.start();
+        new GardenManager().init();
+        //先启动服务中心
+        //gardenServerCenter.runServer();
     }
 
     @Override
     public void close() throws Exception {
-        gardenServer.close();
+        //gardenServerCenter.close();
     }
 
-    /**
-     * Register a watcher for a particular path.
-     */
-    public abstract class WatchRegistration {
-        private Watcher watcher;
-        private String clientPath;
-
-        public WatchRegistration(Watcher watcher, String clientPath) {
-            this.watcher = watcher;
-            this.clientPath = clientPath;
-        }
-
-        abstract protected Map<String, Set<Watcher>> getWatches(int rc);
-
-        /**
-         * Register the watcher with the set of watches on path.
-         *
-         * @param rc the result code of the operation that attempted to
-         *           add the watch on the path.
-         */
-        public void register(int rc) {
-            if (shouldAddWatch(rc)) {
-                Map<String, Set<Watcher>> watches = getWatches(rc);
-                synchronized (watches) {
-                    Set<Watcher> watchers = watches.get(clientPath);
-                    if (watchers == null) {
-                        watchers = new HashSet<Watcher>();
-                        watches.put(clientPath, watchers);
-                    }
-                    watchers.add(watcher);
-                }
-            }
-        }
+    public static void main(String[] args) throws Exception {
+     new Garden().register();
     }
 }
