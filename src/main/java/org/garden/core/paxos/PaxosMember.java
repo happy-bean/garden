@@ -15,163 +15,175 @@ import java.util.concurrent.atomic.AtomicInteger;
  **/
 public class PaxosMember implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 4789712891L;
 
-	/**
-	 * 是否本结点
-	 */
-	private Boolean isCurrentMember;
+    /**
+     * 是否本结点
+     */
+    private Boolean isCurrentMember;
 
-	/**
-	 * 成员唯一名称
-	 */
-	private String memberName;
+    /**
+     * 成员唯一名称
+     */
+    private String memberName;
 
-	/**
-	 * 成员ip地址
-	 */
-	private String ip;
+    /**
+     * 成员ip地址
+     */
+    private String ip;
 
-	/**
-	 * ip端口号
-	 */
-	private Integer port;
+    /**
+     * ip端口号
+     */
+    private Integer port;
 
-	/**
-	 * 成员状态,0-初始化，1-选举中 2-表示选举完成
-	 *
-	 * 使用Integer的时候，必须加上synchronized保证不会出现并发线程同时访问的情况，
-	 * 而在AtomicInteger中却不用加上synchronized，在这里AtomicInteger是提供原子操作的
-	 */
-	private AtomicInteger status=new AtomicInteger(PaxosMemberStatus.INIT.getStatus());
+    /**
+     * 权重
+     */
+    private Integer weights;
 
-	/**
-	 * 是否可用，表示该结点有没有挂掉，true为可用,false挂了
-	 */
-	private Boolean isUp;
+    /**
+     * 成员状态,0-初始化，1-选举中 2-表示选举完成
+     * <p>
+     * 使用Integer的时候，必须加上synchronized保证不会出现并发线程同时访问的情况，
+     * 而在AtomicInteger中却不用加上synchronized，在这里AtomicInteger是提供原子操作的
+     */
+    private AtomicInteger status = new AtomicInteger(PaxosMemberStatus.INIT.getStatus());
 
-	/**
-	 * 角色，选举完成后主要区分为leader跟follower
-	 * 1-leader,2-follower
-	 */
-	private volatile PaxosMemberRole role;
+    /**
+     * 是否可用，表示该结点有没有挂掉，true为可用,false挂了
+     */
+    private Boolean isUp;
 
-	/**
-	 * 对应leader
-	 */
-	private PaxosMember leaderMember;
+    /**
+     * 角色，选举完成后主要区分为leader跟follower
+     * 1-leader,2-follower
+     */
+    private volatile PaxosMemberRole role;
 
-	/**
-	 * 该成员选举信息，即有该成员作为提议者的信息也有该成员作为接收者的信息
-	 */
-	private ElectionInfo electionInfo;
+    /**
+     * 对应leader
+     */
+    private PaxosMember leaderMember;
 
-	/**
-	 * 整个集群结点集合，包含当前结点
-	 */
-	private List<PaxosMember> clusterMemberList;
+    /**
+     * 该成员选举信息，即有该成员作为提议者的信息也有该成员作为接收者的信息
+     */
+    private ElectionInfo electionInfo;
 
-	/**
-	 * 整个集群结点数
-	 */
-	private Integer clusterNodesNum;
+    /**
+     * 整个集群结点集合，包含当前结点
+     */
+    private List<PaxosMember> clusterMemberList;
 
-	private String ipAndPort;
+    /**
+     * 整个集群结点数
+     */
+    private Integer clusterNodesNum;
 
-	public Boolean getIsCurrentMember() {
-		return isCurrentMember;
-	}
+    private String ipAndPort;
 
-	public void setIsCurrentMember(Boolean isCurrentMember) {
-		this.isCurrentMember = isCurrentMember;
-	}
+    public Boolean getIsCurrentMember() {
+        return isCurrentMember;
+    }
 
-	public String getMemberName() {
-		return memberName;
-	}
+    public void setIsCurrentMember(Boolean isCurrentMember) {
+        this.isCurrentMember = isCurrentMember;
+    }
 
-	public void setMemberName(String memberName) {
-		this.memberName = memberName;
-	}
+    public String getMemberName() {
+        return memberName;
+    }
 
-	public String getIp() {
-		return ip;
-	}
+    public void setMemberName(String memberName) {
+        this.memberName = memberName;
+    }
 
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
+    public String getIp() {
+        return ip;
+    }
 
-	public Integer getPort() {
-		return port;
-	}
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
 
-	public void setPort(Integer port) {
-		this.port = port;
-	}
+    public Integer getPort() {
+        return port;
+    }
 
-	public AtomicInteger getStatus() {
-		return status;
-	}
+    public void setPort(Integer port) {
+        this.port = port;
+    }
 
-	public void setStatusValue(int statusValue) {
-		status.set(statusValue);
-	}
+    public AtomicInteger getStatus() {
+        return status;
+    }
 
-	public Boolean getIsUp() {
-		return isUp;
-	}
+    public void setStatusValue(int statusValue) {
+        status.set(statusValue);
+    }
 
-	public void setIsUp(Boolean isUp) {
-		this.isUp = isUp;
-	}
+    public Boolean getIsUp() {
+        return isUp;
+    }
 
-	public PaxosMemberRole getRole() {
-		return role;
-	}
+    public void setIsUp(Boolean isUp) {
+        this.isUp = isUp;
+    }
 
-	public void setRole(PaxosMemberRole role) {
-		this.role = role;
-	}
+    public PaxosMemberRole getRole() {
+        return role;
+    }
 
-	public PaxosMember getLeaderMember() {
-		return leaderMember;
-	}
+    public void setRole(PaxosMemberRole role) {
+        this.role = role;
+    }
 
-	public void setLeaderMember(PaxosMember leaderMember) {
-		this.leaderMember = leaderMember;
-	}
+    public PaxosMember getLeaderMember() {
+        return leaderMember;
+    }
 
-	public ElectionInfo getElectionInfo() {
-		return electionInfo;
-	}
+    public void setLeaderMember(PaxosMember leaderMember) {
+        this.leaderMember = leaderMember;
+    }
 
-	public void setElectionInfo(ElectionInfo electionInfo) {
-		this.electionInfo = electionInfo;
-	}
+    public ElectionInfo getElectionInfo() {
+        return electionInfo;
+    }
 
-	public List<PaxosMember> getClusterMemberList() {
-		return clusterMemberList;
-	}
+    public void setElectionInfo(ElectionInfo electionInfo) {
+        this.electionInfo = electionInfo;
+    }
 
-	public void setClusterMemberList(List<PaxosMember> clusterMemberList) {
-		this.clusterMemberList = clusterMemberList;
-	}
+    public List<PaxosMember> getClusterMemberList() {
+        return clusterMemberList;
+    }
 
-	public Integer getClusterNodesNum() {
-		return clusterNodesNum;
-	}
+    public void setClusterMemberList(List<PaxosMember> clusterMemberList) {
+        this.clusterMemberList = clusterMemberList;
+    }
 
-	public void setClusterNodesNum(Integer clusterNodesNum) {
-		this.clusterNodesNum = clusterNodesNum;
-	}
+    public Integer getClusterNodesNum() {
+        return clusterNodesNum;
+    }
 
-	public String getIpAndPort() {
-		return ipAndPort;
-	}
+    public void setClusterNodesNum(Integer clusterNodesNum) {
+        this.clusterNodesNum = clusterNodesNum;
+    }
 
-	public void setIpAndPort(String ipAndPort) {
-		this.ipAndPort = ipAndPort;
-	}
+    public String getIpAndPort() {
+        return ipAndPort;
+    }
 
+    public void setIpAndPort(String ipAndPort) {
+        this.ipAndPort = ipAndPort;
+    }
+
+    public Integer getWeights() {
+        return weights;
+    }
+
+    public void setWeights(Integer weights) {
+        this.weights = weights;
+    }
 }

@@ -69,7 +69,7 @@ public class DefaultRemotingClient implements RemotingClient {
         try {
             channelFuture = bootstrap.connect(remoteAddress).sync();
             channel = channelFuture.channel();
-            logger.debug("end succ connect server,ip[" + ip + "],port[" + port + "]");
+            logger.info("end succ connect server,ip[" + ip + "],port[" + port + "]");
             return true;
         } catch (Exception e) {
             logger.error("err connect server,ip[" + ip + "],port[" + port + "] "+e.getMessage());
@@ -93,7 +93,7 @@ public class DefaultRemotingClient implements RemotingClient {
 
         ChannelFuture closeFuture = channel.close();
         if (closeFuture.isSuccess()) {
-            logger.debug("succ close channel[" + JSON.toJSONString(channel) + "]");
+            logger.info("succ close channel[" + JSON.toJSONString(channel) + "]");
         }
     }
 

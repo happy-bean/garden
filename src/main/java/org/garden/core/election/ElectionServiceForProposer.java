@@ -47,33 +47,25 @@ public class ElectionServiceForProposer implements ElectionForProposer {
     public Pair<Boolean/* 是否可以进行下个阶段选举 */, Object/* 可以进行下阶段选举的提议值 */> proposalFirstPhase(long round, long num, Object value) {
         String logStr = "round[" + round + "],num[" + num + "],value[" + value + "]";
 
-        LOGGER.info("1.begin proposalFirstPhase," + logStr);
+        LOGGER.info("begin proposalFirstPhase," + logStr);
 
-        /**
-         * 1.获取其它结点成员
-         */
+        //获取其它结点成员
         List<PaxosMember> otherMemberList = paxosStore.getOtherPaxosMemberList();
         if (CollectionUtils.isEmpty(otherMemberList)) {
-            /**
-             * 集群只有当前结点自己一个结点，选举失败
-             */
+            //集群只有当前结点自己一个结点，选举失败
             LOGGER.info("end proposalFirstPhase no otherMemberList found," + logStr);
             return new Pair<Boolean, Object>(false, null);
         }
 
-        /**
-         * 2.当前结点自己先保存下自己的提议号
-         */
+        //当前结点自己先保存下自己的提议号
         ElectionResponse saveRes = paxosStore.saveAcceptFirstPhaseMaxNumForCurrentMember(num);
         if (CodeInfo.DENY_CODE.equals(saveRes.getCode())) {
             LOGGER.info("end proposalFirstPhase err,can not save maxFirstPhaseNum," + logStr);
             return new Pair<Boolean, Object>(false, null);
         }
 
-        /**
-         * 3.开始向其它结点提议
-         */
-        LOGGER.info("2.try to send firstPhase protocal to otherMemberList," + logStr);
+        //开始向其它结点提议
+        LOGGER.info("try to send firstPhase protocal to otherMemberList," + logStr);
         List<ElectionResponse> acceptResponseList = new ArrayList<ElectionResponse>();
 
         // 由于接受者已经处于选举完成状态，如果这个类型返回结果超过半数则以返回集合中最大编号的实际值为leader
@@ -81,9 +73,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
 
         List<ElectionResponse> allElectionResponseListHasElectionRound = new ArrayList<ElectionResponse>();
 
-        /**
-         * 3.1.异步提交发送第一阶段请求
-         */
+        //异步提交发送第一阶段请求
         List<ElectionResponse> responseResList = this.sendElectionRequestToOtherMemberList(otherMemberList, round, num, value,
                 CodeInfo.REQ_TYPE_ELECTION_FIRST_PHASE);
 
@@ -99,9 +89,8 @@ public class ElectionServiceForProposer implements ElectionForProposer {
             }
         }
 
-        /**
-         * 看处于选举完成状态的接受者数目是否大于一半，是的话，取出最大提议轮数的实际值为leader
-         */
+        //看处于选举完成状态的接受者数目是否大于一半，是的话，取出最大提议轮数的实际值为leader
+
         int clusterNodesNum = paxosStore.getCurrentPaxosMember().getClusterNodesNum();
         int denyNumForHasLeader = 0;
         long maxElectionRound = -1;
@@ -135,12 +124,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
         if (!this.acceptNumLargerThanHalf(acceptNum, clusterNodesNum)) {
             LOGGER.info("end send firstPhase protocal acceptNum less,give up," + logStr);
 
-            /**
-             * improve performance
-             */
-            /**
-             * 4.1.sort the allMemberList
-             */
+            //sort the allMemberList
             Collections.sort(allElectionResponseListHasElectionRound, new PaxosElectionResponseComparator());
 
             Long maxElectionRoundForAcceptor = null;

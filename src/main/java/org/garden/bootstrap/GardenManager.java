@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.garden.Garden;
 import org.garden.conf.GardenConfig;
 import org.garden.core.constants.CodeInfo;
 import org.garden.core.election.ElectionInfo;
@@ -12,6 +13,7 @@ import org.garden.core.election.ElectionProcessor;
 import org.garden.core.paxos.PaxosCore;
 import org.garden.core.paxos.PaxosCoreComponent;
 import org.garden.core.paxos.PaxosMember;
+import org.garden.core.paxos.PaxosMemberComparator;
 import org.garden.enums.PaxosMemberRole;
 import org.garden.enums.PaxosMemberStatus;
 import org.garden.handler.UpStreamHandler;
@@ -19,6 +21,7 @@ import org.garden.task.HeartBeatProcessor;
 import org.garden.util.HostUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -46,7 +49,6 @@ public class GardenManager {
 
         //初始化本机member 信息
         PaxosMember currentMember = this.initPaxosMember(ip, port, true);
-
         currentMember.setMemberName(GardenConfig.serverNodeName);
 
         //初始化成员列表
@@ -70,14 +72,10 @@ public class GardenManager {
         currentMember.setElectionInfo(electionInfo);
 
 
-        // 未完成！！！！
-        // --------
-        //第一次选举提议号  默认第一次选自己
         //设置paxosCore 注册到paxosMember服务中
         PaxosCore paxosCore = new PaxosCoreComponent(); //
         paxosCore.setCurrentPaxosMember(currentMember);
         paxosCore.setOtherPaxosMemberList(this.getOtherPaxMemberList(clusterMemberList));
-        // --------
 
         //加载选举信息
         ElectionInfoLoader electionInfoLoader = new ElectionInfoLoader();
@@ -87,10 +85,10 @@ public class GardenManager {
         System.out.println("--------");
         HeartBeatProcessor heartBeatProcessor = new HeartBeatProcessor();
         UpStreamHandler upStreamHandler = new UpStreamHandler(paxosCore);
+        System.out.println("======");
         heartBeatProcessor.start(upStreamHandler);
 
         //开启选举处理器
-        System.out.println("======");
         UpStreamHandler upStreamHandlerForElection = new UpStreamHandler(paxosCore);
         ElectionProcessor electionProcessor = new ElectionProcessor();
         electionProcessor.start(upStreamHandlerForElection);
@@ -158,7 +156,6 @@ public class GardenManager {
             return null;
         }
 
-        nodes = nodes.replace("[", "").replace("]", "");
         List<PaxosMember> paxosMemberList = new ArrayList<PaxosMember>();
         try {
             String[] nodeArr = nodes.split(",");
@@ -173,11 +170,12 @@ public class GardenManager {
                 }
 
                 String ip = nodeIpAndPort[0];
-                Integer port = HostUtil.parsePort(nodeIpAndPort[1]);
+                Integer port = HostUtil.parsePort(nodeIpAndPort[1].split("\\[")[0]);
                 LOGGER.info("found node,ip:" + ip + ",port:" + port);
 
                 //初始时，默认其它结点是有效的及状态为初始INIT状态
                 PaxosMember paxosMember = this.initPaxosMember(ip, port, false);
+                paxosMember.setWeights(Integer.valueOf(nodeIpAndPort[1].split("\\[")[1].replace("]","")));
                 paxosMemberList.add(paxosMember);
 
                 if (nodeStr.equals(nodeArr[0])) {
@@ -204,30 +202,25 @@ public class GardenManager {
             return 1;
         }
 
-//        /**
-//         * 有多个结点，将所有结点ip+port进行排序，设置每个结点一个提议时产生提议号的唯一提议序号标识
-//         */
-//        Collections.sort(clusterMemberList, new PaxosMemberComparator());
-//
-//        /**
-//         * 3.排序完成后，只要返回当前结点的提议唯一序列即可
-//         */
-//        Integer proposalUniqueSeqForCurrentMember = null;
-//        for (int i = 0; i < clusterMemberList.size(); i++) {
-//            PaxosMember paxosMember = clusterMemberList.get(i);
-//            LOGGER.info(">member,ip[" + paxosMember.getIp() + "],port[" + paxosMember.getPort() + "],which proposalUniqueSeq is[" + i + "]");
-//            if (paxosMember.getIsCurrentMember()) {
-//                proposalUniqueSeqForCurrentMember = i;
-//            }
-//        }
-//
-//        if (proposalUniqueSeqForCurrentMember == null) {
-//            throw new IllegalArgumentException("处理当前结点提议唯一序列时，没有找到,集群结点集合[" + clusterMemberList.toString() + "]");
-//        }
-//
-//        return proposalUniqueSeqForCurrentMember;
+        //有多个结点，将所有结点ip+port进行排序，设置每个结点一个提议时产生提议号的唯一提议序号标识
+        Collections.sort(clusterMemberList, new PaxosMemberComparator());
 
-        return 1;
+        //排序完成后，只要返回当前结点的提议唯一序列即可
+        Integer proposalUniqueSeqForCurrentMember = null;
+        for (int i = 0; i < clusterMemberList.size(); i++) {
+            PaxosMember paxosMember = clusterMemberList.get(i);
+            LOGGER.info("member,ip[" + paxosMember.getIp() + "],port[" + paxosMember.getPort() + "],which proposalUniqueSeq is[" + i + "]");
+            if (paxosMember.getIsCurrentMember()) {
+                proposalUniqueSeqForCurrentMember = i;
+            }
+        }
+
+        if (proposalUniqueSeqForCurrentMember == null) {
+            throw new IllegalArgumentException("not found,member list:[" + clusterMemberList.toString() + "]");
+        }
+
+        return proposalUniqueSeqForCurrentMember;
+
     }
 
     //获取其它选举节点列表-除本节点以外的节点
