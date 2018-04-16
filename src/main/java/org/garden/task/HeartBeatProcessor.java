@@ -131,13 +131,13 @@ public class HeartBeatProcessor {
             //尝试连接
             boolean connectSuccFlag = exchangeClientFresh.connect(ip, heatbeatPort);
             if (!connectSuccFlag) {
-                LOGGER.debug("can not connect to server,ip[" + ip + "],heatbeatPort[" + heatbeatPort + "]");
+                LOGGER.info("can not connect to server,ip[" + ip + "],heatbeatPort[" + heatbeatPort + "]");
                 paxosMember.setIsUp(false);
             } else {
                 // 连接成功
                 paxosMember.setIsUp(true);
                 exchangeClientCacheMap.put(exchangeClientKey, exchangeClientFresh);
-                LOGGER.debug("end heartbeat succ connect to server,ip[" + ip + "],port[" + heatbeatPort + "]");
+                LOGGER.info("end heartbeat succ connect to server,ip[" + ip + "],port[" + heatbeatPort + "]");
             }
         } finally {
             lock.unlock();
@@ -158,9 +158,7 @@ public class HeartBeatProcessor {
             return exchangeClient;
         }
 
-        /**
-         * 没有进行重连然后返回该连接
-         */
+        //没有进行重连然后返回该连接
         LOGGER.info("getExchangeClientReconnectWhenNotExist not found exchangeClient and try to reconnect,ip[" + ip + "],port[" + port
                 + "]");
         this.reconnect(paxosMember);

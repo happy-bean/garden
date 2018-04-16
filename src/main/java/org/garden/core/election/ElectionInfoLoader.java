@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import org.garden.core.data.DataStoreInf;
 import org.garden.core.data.FileDataStore;
 import org.garden.core.paxos.DefaultPaxosStore;
+import org.garden.core.paxos.PaxosCore;
 import org.garden.core.paxos.PaxosMember;
 import org.garden.core.paxos.PaxosStoreInf;
 import org.garden.util.BizSerialAndDeSerialUtil;
@@ -21,7 +22,13 @@ public class ElectionInfoLoader {
 
     private DataStoreInf dataStore = new FileDataStore();
 
-    private PaxosStoreInf paxosStore = new DefaultPaxosStore();
+    private PaxosStoreInf paxosStore;
+
+    public ElectionInfoLoader(PaxosCore paxosCore){
+        paxosStore = new DefaultPaxosStore();
+        paxosStore.setCurrentPaxosMember(paxosCore.getCurrentPaxosMember());
+        paxosCore.setOtherPaxosMemberList(paxosCore.getOtherPaxosMemberList());
+    }
 
     //加载选举信息
     public void loadElectionInfo() throws Exception {

@@ -5,12 +5,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.garden.core.constants.CodeInfo;
-import org.garden.core.paxos.PaxosElectionResponseComparator;
-import org.garden.core.paxos.PaxosMember;
-import org.garden.core.paxos.PaxosMemberStatusComparator;
-import org.garden.core.paxos.PaxosStoreInf;
+import org.garden.core.paxos.*;
 import org.garden.enums.PaxosMemberStatus;
 import org.garden.exchange.ExchangeClient;
+import org.garden.handler.UpStreamHandler;
 import org.garden.remoting.Command;
 import org.garden.remoting.Response;
 import org.garden.remoting.ResponseFuture;
@@ -35,6 +33,17 @@ public class ElectionServiceForProposer implements ElectionForProposer {
 
     private PaxosStoreInf paxosStore;
 
+    public ElectionServiceForProposer(){
+
+    }
+
+    public ElectionServiceForProposer(UpStreamHandler upStreamHandler,HeartBeatProcessor heartBeatProcessor){
+        paxosStore = new DefaultPaxosStore();
+        paxosStore.setCurrentPaxosMember(upStreamHandler.getPaxosCoreComponent().getCurrentPaxosMember());
+        paxosStore.setOtherPaxosMemberList(upStreamHandler.getPaxosCoreComponent().getOtherPaxosMemberList());
+        this.heartBeatProcessor =heartBeatProcessor;
+    }
+
     /**
      * 一阶段选举
      *
@@ -51,6 +60,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
 
         //获取其它结点成员
         List<PaxosMember> otherMemberList = paxosStore.getOtherPaxosMemberList();
+
         if (CollectionUtils.isEmpty(otherMemberList)) {
             //集群只有当前结点自己一个结点，选举失败
             LOGGER.info("end proposalFirstPhase no otherMemberList found," + logStr);
@@ -59,6 +69,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
 
         //当前结点自己先保存下自己的提议号
         ElectionResponse saveRes = paxosStore.saveAcceptFirstPhaseMaxNumForCurrentMember(num);
+
         if (CodeInfo.DENY_CODE.equals(saveRes.getCode())) {
             LOGGER.info("end proposalFirstPhase err,can not save maxFirstPhaseNum," + logStr);
             return new Pair<Boolean, Object>(false, null);
@@ -76,6 +87,8 @@ public class ElectionServiceForProposer implements ElectionForProposer {
         //异步提交发送第一阶段请求
         List<ElectionResponse> responseResList = this.sendElectionRequestToOtherMemberList(otherMemberList, round, num, value,
                 CodeInfo.REQ_TYPE_ELECTION_FIRST_PHASE);
+
+        System.out.println("---jhjkjk"+paxosStore);
 
         for (ElectionResponse electionResponse : responseResList) {
             if (CodeInfo.ACCEPT_CODE.equals(electionResponse.getCode())) {
@@ -199,13 +212,14 @@ public class ElectionServiceForProposer implements ElectionForProposer {
 
             //判断节点是否宕机
             if (!paxosMember.getIsUp()) {
-                LOGGER.info(">err send electionReq to ip[" + paxosMember.getIp() + "],port[" + paxosMember.getPort() + "],member is not up");
+                LOGGER.info("err send electionReq to ip[" + paxosMember.getIp() + "],port[" + paxosMember.getPort() + "],member is not up");
                 continue;
             }
 
             ExchangeClient exchangeClient = this.getExchangeClient(paxosMember);
+
             if (exchangeClient == null) {
-                LOGGER.error(">cannot get exchangeClient for member,ip[" + paxosMember.getIp() + "],port[" + paxosMember.getPort() + "]");
+                LOGGER.error("cannot get exchangeClient for member,ip[" + paxosMember.getIp() + "],port[" + paxosMember.getPort() + "]");
                 continue;
             }
 
@@ -215,6 +229,9 @@ public class ElectionServiceForProposer implements ElectionForProposer {
             try {
                 ResponseFuture responseFuture = null;
                 if (CodeInfo.REQ_TYPE_ELECTION_FIRST_PHASE == phase) {
+
+                    System.out.println("【【【【【【【");
+
                     //第一阶段建议
                     responseFuture = this.sendFirstPhasePropotal(exchangeClient, round, num, value, paxosMember);
                 } else if (CodeInfo.REQ_TYPE_ELECTION_SECOND_PHASE == phase) {
@@ -225,7 +242,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
                 }
                 futureList.add(responseFuture);
             } catch (Exception e) {
-                LOGGER.error(">3.send " + phaseDesc + " to acceptor err," + curLogStr, e);
+                LOGGER.error("send " + phaseDesc + " to acceptor err," + curLogStr, e);
             }
         }
 
@@ -242,14 +259,14 @@ public class ElectionServiceForProposer implements ElectionForProposer {
                 }
 
                 if (remotingResponse == null) {
-                    LOGGER.error(">====no response found for firstPahse");
+                    LOGGER.error("no response found for firstPahse");
                     continue;
                 }
 
                 ElectionResponse electionResponse = JSON.parseObject(remotingResponse.getData(), ElectionResponse.class);
                 resList.add(electionResponse);
             } catch (Exception e) {
-                LOGGER.error(">=====get response err", e);
+                LOGGER.error("get response err", e);
             }
         }
 
@@ -279,9 +296,9 @@ public class ElectionServiceForProposer implements ElectionForProposer {
     }
 
     public ElectionResponse parseResponse(Response res, String logStr) {
-        LOGGER.info(">2.send firstPhase protocal to," + logStr + ",acceptor res[" + JSON.toJSONString(res) + "]");
+        LOGGER.info("send firstPhase protocal to," + logStr + ",acceptor res[" + JSON.toJSONString(res) + "]");
         if (res == null || !(res instanceof Response)) {
-            LOGGER.error(">return res err for send firstPhase protocal,res[" + res + "]," + logStr);
+            LOGGER.error("return res err for send firstPhase protocal,res[" + res + "]," + logStr);
             return new ElectionResponse(CodeInfo.SEND_ERR_CODE, null, null, null);
         }
 
@@ -291,18 +308,18 @@ public class ElectionServiceForProposer implements ElectionForProposer {
         Response remotingResponse = (Response) res;
         String protocalResponse = remotingResponse.getData();
         if (StringUtils.isEmpty(protocalResponse)) {
-            LOGGER.error(">return protocalResponse cannot be null for send firstPhase protocal,res[" + res + "]," + logStr);
+            LOGGER.error("return protocalResponse cannot be null for send firstPhase protocal,res[" + res + "]," + logStr);
             return new ElectionResponse(CodeInfo.SEND_ERR_CODE, null, null, null);
         }
 
         ElectionResponse electionResponse = JSON.parseObject(protocalResponse, ElectionResponse.class);
         if (electionResponse == null) {
-            LOGGER.error(">return protocalResponse cannot convert to electionResponse for send firstPhase protocal,res[" + res + "],"
+            LOGGER.error("return protocalResponse cannot convert to electionResponse for send firstPhase protocal,res[" + res + "],"
                     + logStr);
             return new ElectionResponse(CodeInfo.SEND_ERR_CODE, null, null, null);
         }
 
-        LOGGER.info(">3.end send firstPhase protocal to," + logStr + ",acceptor res[" + JSON.toJSONString(res) + "]");
+        LOGGER.info("end send firstPhase protocal to," + logStr + ",acceptor res[" + JSON.toJSONString(res) + "]");
         return electionResponse;
     }
 
@@ -330,31 +347,23 @@ public class ElectionServiceForProposer implements ElectionForProposer {
 
         LOGGER.info(">1.begin secondPhase," + logStr);
 
-        /**
-         * 1.获取其它结点成员
-         */
+        //获取其它结点成员
         List<PaxosMember> otherMemberList = paxosStore.getOtherPaxosMemberList();
         if (CollectionUtils.isEmpty(otherMemberList)) {
-            /**
-             * 集群只有当前结点自己一个结点，选举失败,TODO
-             */
-            LOGGER.info(">end secondPhase no otherMemberList found," + logStr);
+            //集群只有当前结点自己一个结点，选举失败
+            LOGGER.info("end secondPhase no otherMemberList found," + logStr);
             return false;
         }
 
-        /**
-         * 2.当前结点自己先保存下自己的提议号
-         */
+        //当前结点自己先保存下自己的提议号
         ElectionResponse saveRes = paxosStore.saveAcceptSecondPhaseMaxNumAndValueForCurrentMember(round, num, value);
         if (saveRes.getCode().equals(CodeInfo.DENY_CODE)) {
             LOGGER.info(">end secondPhase err,can not save maxFirstPhaseNum," + logStr);
             return false;
         }
 
-        /**
-         * 3.开始向其它结点第二阶段提议
-         */
-        LOGGER.info(">2.try to send secondPhase accept to otherMemberList," + logStr);
+        //开始向其它结点第二阶段提议
+        LOGGER.info("try to send secondPhase accept to otherMemberList," + logStr);
         List<PaxosMember> acceptProtocalMemberList = new ArrayList<PaxosMember>();
         List<ElectionResponse> acceptResponseList = new ArrayList<ElectionResponse>();
 
@@ -365,7 +374,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
                 acceptResponseList.add(electionResponse);
             }
         }
-        LOGGER.info(">3.finish send secondPhase accept to otherMemberList,acceptCount[" + acceptProtocalMemberList.size() + "],list["
+        LOGGER.info("finish send secondPhase accept to otherMemberList,acceptCount[" + acceptProtocalMemberList.size() + "],list["
                 + acceptProtocalMemberList + "]," + logStr);
 
         /**
@@ -376,7 +385,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
         // 这里接收票数要加上本结点自己这一票
         int acceptNum = acceptResponseList.size() + 1;
         if (!this.acceptNumLargerThanHalf(acceptNum, clusterNodesNum)) {
-            LOGGER.info(">end send secondPhase protocal acceptNum less,give up," + logStr);
+            LOGGER.info("end send secondPhase protocal acceptNum less,give up," + logStr);
             return false;
         }
 
@@ -386,7 +395,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
     private boolean sendElectionResultToLearners(Long electionRound, Long realNum, Object realValue, List<PaxosMember> otherNodeList,
                                                  String logStr) {
         if (CollectionUtils.isEmpty(otherNodeList)) {
-            LOGGER.error(">sendElectionResultToLearners err," + logStr);
+            LOGGER.error("sendElectionResultToLearners err," + logStr);
             return false;
         }
 
@@ -395,24 +404,23 @@ public class ElectionServiceForProposer implements ElectionForProposer {
         for (PaxosMember paxosMember : otherNodeList) {
             String ip = paxosMember.getIp();
             int port = paxosMember.getPort();
-            LOGGER.info(">begin send electionReulst to ip[" + ip + "],port[" + port + "]");
+            LOGGER.info("begin send electionReulst to ip[" + ip + "],port[" + port + "]");
 
             ExchangeClient exchangeClient = heartBeatProcessor.getExchangeClientReconnectWhenNotExist(paxosMember);
             if (exchangeClient == null) {
-                LOGGER.error(">not foudn exchangeClient when sendElectionResult to ip[" + paxosMember.getIp() + "],port["
+                LOGGER.error("not foudn exchangeClient when sendElectionResult to ip[" + paxosMember.getIp() + "],port["
                         + paxosMember.getPort() + "],`" + logStr);
                 continue;
             }
 
             try {
                 exchangeClient.sendAsyncSync(electionResultReqCommand);
-                LOGGER.info(">end send electionReulst succ to ip[" + ip + "],port[" + port + "]");
+                LOGGER.info("end send electionReulst succ to ip[" + ip + "],port[" + port + "]");
             } catch (Exception e) {
-                LOGGER.error(">send electionResult err to ip[" + ip + "],port[" + port + "]," + logStr, e);
+                LOGGER.error("send electionResult err to ip[" + ip + "],port[" + port + "]," + logStr, e);
             }
         }
 
-        // TODO
         return true;
     }
 
@@ -421,7 +429,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
                                                    boolean shouldSendResult) {
         String logStr = "electionRound[" + electionRound + "],realNum[" + realNum + "],realValue[" + realValue + "],electionSuccessFlag["
                 + electionSuccessFlag + "],shouldSendResult[" + shouldSendResult + "]";
-        LOGGER.info(">begin processAfterElectionSecondPhase," + logStr);
+        LOGGER.info("begin processAfterElectionSecondPhase," + logStr);
 
         if (!electionSuccessFlag) {
             /**
@@ -433,7 +441,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
 
         boolean saveElectionRes = paxosStore.saveElectionResultAndSetStatus(electionRound, realNum, realValue);
         if (!saveElectionRes) {
-            LOGGER.error("> processAfterElectionSecondPhase saveElectionResultAndSetStatus err," + logStr);
+            LOGGER.error("processAfterElectionSecondPhase saveElectionResultAndSetStatus err," + logStr);
             return false;
         }
 
@@ -450,7 +458,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
         boolean sendRealValueToLearners = this.sendElectionResultToLearners(electionRound, realNum, realValue,
                 paxosStore.getOtherPaxosMemberList(), logStr);
         if (!sendRealValueToLearners) {
-            LOGGER.error("> processAfterElectionSecondPhase sendRealValueToLearners err," + logStr);
+            LOGGER.error("processAfterElectionSecondPhase sendRealValueToLearners err," + logStr);
             return false;
         }
 

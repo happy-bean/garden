@@ -47,10 +47,10 @@ public class FileDataStore implements DataStoreInf {
             try {
                 resFlag = file.createNewFile();
                 if (!resFlag) {
-                    LOGGER.error(">cannot create fileName in writeToStore,fileName:" + fileName);
+                    LOGGER.error("cannot create fileName in writeToStore,fileName:" + fileName);
                 }
             } catch (IOException e) {
-                LOGGER.error(">create file err,fileName:" + fileName, e);
+                LOGGER.error("create file err,fileName:" + fileName, e);
                 resFlag = false;
             }
 

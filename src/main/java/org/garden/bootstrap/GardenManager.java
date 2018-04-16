@@ -78,20 +78,19 @@ public class GardenManager {
         paxosCore.setOtherPaxosMemberList(this.getOtherPaxMemberList(clusterMemberList));
 
         //加载选举信息
-        ElectionInfoLoader electionInfoLoader = new ElectionInfoLoader();
+        ElectionInfoLoader electionInfoLoader = new ElectionInfoLoader(paxosCore);
         electionInfoLoader.loadElectionInfo();
 
         //开启心跳处理器
-        System.out.println("--------");
         HeartBeatProcessor heartBeatProcessor = new HeartBeatProcessor();
         UpStreamHandler upStreamHandler = new UpStreamHandler(paxosCore);
-        System.out.println("======");
         heartBeatProcessor.start(upStreamHandler);
 
+        System.out.println("========");
         //开启选举处理器
         UpStreamHandler upStreamHandlerForElection = new UpStreamHandler(paxosCore);
         ElectionProcessor electionProcessor = new ElectionProcessor();
-        electionProcessor.start(upStreamHandlerForElection);
+        electionProcessor.start(upStreamHandlerForElection,heartBeatProcessor);
 
     }
 

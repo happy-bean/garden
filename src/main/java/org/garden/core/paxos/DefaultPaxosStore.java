@@ -3,6 +3,7 @@ package org.garden.core.paxos;
 import org.apache.log4j.Logger;
 import org.garden.core.constants.CodeInfo;
 import org.garden.core.data.DataStoreInf;
+import org.garden.core.data.FileDataStore;
 import org.garden.core.election.ElectionInfo;
 import org.garden.core.election.ElectionResponse;
 import org.garden.enums.PaxosMemberStatus;
@@ -30,7 +31,7 @@ public class DefaultPaxosStore implements PaxosStoreInf {
 
     private Lock lock = new ReentrantLock();
 
-    private DataStoreInf dataStore;
+    private DataStoreInf dataStore = new FileDataStore();
 
     //保存接收到的第一次选举当前成员最大数
     @Override

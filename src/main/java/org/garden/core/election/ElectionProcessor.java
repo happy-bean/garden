@@ -6,6 +6,7 @@ import org.garden.core.paxos.*;
 import org.garden.enums.PaxosMemberRole;
 import org.garden.enums.PaxosMemberStatus;
 import org.garden.handler.UpStreamHandler;
+import org.garden.task.HeartBeatProcessor;
 import org.garden.util.PaxosConflictionUtil;
 import org.javatuples.Pair;
 
@@ -38,10 +39,10 @@ public class ElectionProcessor {
     private ScheduledExecutorService scheduledExecutorService;
 
     //paxos核心部件
-    private PaxosCore memberService=new PaxosCoreComponent();
+    private PaxosCore memberService = new PaxosCoreComponent();
 
     //提议者处理选举算法服务类
-    private ElectionForProposer electionService = new ElectionServiceForProposer();
+    private ElectionForProposer electionService;
 
     //上一次提议
     private volatile long lastTimeProposal;
@@ -55,11 +56,15 @@ public class ElectionProcessor {
 
     }
 
-    public void start(UpStreamHandler upStreamHandler) {
+    public void start(UpStreamHandler upStreamHandler,HeartBeatProcessor heartBeatProcessor) {
         //检查
         if (upStreamHandler == null) {
             throw new IllegalArgumentException("upstreamHandler is null");
-        }else {
+        } else {
+
+            electionService = new ElectionServiceForProposer(upStreamHandler,heartBeatProcessor);
+
+
             PaxosMember paxosMember = upStreamHandler.getPaxosCoreComponent().getCurrentPaxosMember();
             List<PaxosMember> paxosMemberList = upStreamHandler.getPaxosCoreComponent().getOtherPaxosMemberList();
             memberService.setCurrentPaxosMember(paxosMember);
@@ -85,14 +90,10 @@ public class ElectionProcessor {
              */
             PaxosMember currentMember = memberService.getCurrentPaxosMember();
             if (currentMember.getRole() == PaxosMemberRole.LEADER) {
-                System.out.println("======11");
-
                 processStatusForLeader();
             } else {
                 processStatusForNotLeader();
             }
-
-            System.out.println("======1122");
 
             //处理选举
             long electionIntervalBetweenRound = PaxosConflictionUtil.electionIntervalBetweenRound;
@@ -136,7 +137,7 @@ public class ElectionProcessor {
 
     /**
      * 设置不是leader状态
-     * */
+     */
     private void processStatusForNotLeader() {
         PaxosMember currentMember = paxosStore.getCurrentPaxosMember();
         PaxosMember leaderMember = currentMember.getLeaderMember();
@@ -154,8 +155,9 @@ public class ElectionProcessor {
 
     /**
      * 执行选举
+     *
      * @param
-     * */
+     */
     private void processElection() {
         long curTime = System.currentTimeMillis();
         if ((curTime - lastTimeProposal) < PaxosConflictionUtil.electionIntervalBetweenRound) {

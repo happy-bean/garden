@@ -46,7 +46,7 @@ public class DefaultRemotingClient implements RemotingClient {
 
     @Override
     public boolean connect(String ip, Integer port) {
-        logger.debug("begin connect to server,ip[" + ip + "],port[" + port + "]");
+        logger.info("begin connect to server,ip[" + ip + "],port[" + port + "]");
         bootstrap = new Bootstrap();
         workerGroup = new NioEventLoopGroup(1);
         bootstrap.channel(NioSocketChannel.class);
