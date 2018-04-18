@@ -70,6 +70,7 @@ public class ElectionProcessor {
             memberService.setCurrentPaxosMember(paxosMember);
             memberService.setOtherPaxosMemberList(paxosMemberList);
             paxosStore.setCurrentPaxosMember(paxosMember);
+            paxosStore.setOtherPaxosMemberList(paxosMemberList);
         }
 
         //开启定时查看与leader连接状态,如果连不上了，则进行选举

@@ -24,10 +24,10 @@ public class DefaultPaxosStore implements PaxosStoreInf {
     private static final Logger LOGGER = Logger.getLogger(DefaultPaxosStore.class);
 
     //选举成员信息
-    private PaxosMember currentMember;
+    private static PaxosMember currentMember;
 
     //选举成员信息集合
-    private List<PaxosMember> otherMemberList;
+    private static List<PaxosMember> otherMemberList;
 
     private Lock lock = new ReentrantLock();
 

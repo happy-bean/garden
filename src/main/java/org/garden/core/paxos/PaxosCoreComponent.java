@@ -68,12 +68,9 @@ public class PaxosCoreComponent implements PaxosCore{
      * 处理二阶段选举完成后，广播选举结果
      *
      * @param electionSuccessFlag
-     * @param electionRound
-     *            当前选举轮次
-     * @param realNum
-     *            促成选举结果的提议号
-     * @param realValue
-     *            选举结果
+     * @param electionRound 当前选举轮次
+     * @param realNum 促成选举结果的提议号
+     * @param realValue 选举结果
      * @return
      */
     @Override
@@ -95,15 +92,11 @@ public class PaxosCoreComponent implements PaxosCore{
             ElectionRequest electionRequest = BizSerialAndDeSerialUtil.parseElectionRequest(electionRequestData);
             electionResponse = this.processElection(type, electionRequest);
         } else if (CodeInfo.REQ_TYPE_ELECTION_RESULT_TO_LEANER == type) {
-            /**
-             * 接收选举结果
-             */
+            //接收选举结果
             ElectionResultRequest electionResultRequest = BizSerialAndDeSerialUtil.parseElectionResultRequest(electionRequestData);
             electionResponse = electionServiceForAcceptor.processElectionResultRequest(electionResultRequest);
 
-            /**
-             * 选举成功后,之前的选举间隔时间调回来
-             */
+            //选举成功后,之前的选举间隔时间调回来
             PaxosConflictionUtil.electionIntervalBetweenRound = PaxosConflictionUtil.DEFALT_INTERVAL;
         } else {
             throw new IllegalArgumentException("unsupport request bizType,type[" + type + "]," + electionRequestData);
@@ -119,7 +112,8 @@ public class PaxosCoreComponent implements PaxosCore{
         } else if (CodeInfo.REQ_TYPE_ELECTION_SECOND_PHASE == type) {
             electionResponse = electionServiceForAcceptor.processElectionRequestSecondPhase(electionRequest);
         } else {
-            throw new IllegalArgumentException("不支持的选举类型");
+            //不支持的选举类型
+            throw new IllegalArgumentException("unsupport election type");
         }
 
         return electionResponse;

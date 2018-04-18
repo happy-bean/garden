@@ -88,8 +88,6 @@ public class ElectionServiceForProposer implements ElectionForProposer {
         List<ElectionResponse> responseResList = this.sendElectionRequestToOtherMemberList(otherMemberList, round, num, value,
                 CodeInfo.REQ_TYPE_ELECTION_FIRST_PHASE);
 
-        System.out.println("---jhjkjk"+paxosStore);
-
         for (ElectionResponse electionResponse : responseResList) {
             if (CodeInfo.ACCEPT_CODE.equals(electionResponse.getCode())) {
                 acceptResponseList.add(electionResponse);
@@ -205,7 +203,8 @@ public class ElectionServiceForProposer implements ElectionForProposer {
         } else if (CodeInfo.REQ_TYPE_ELECTION_SECOND_PHASE == phase) {
             phaseDesc = "secondPhase";
         } else {
-            throw new IllegalArgumentException("不支持的选举阶段参数,sendElectionRequestToOtherMemberList");
+            //不支持的选举阶段参数
+            throw new IllegalArgumentException("nonsupport this election phase,sendElectionRequestToOtherMemberList");
         }
 
         for (PaxosMember paxosMember : otherMemberList) {
@@ -223,22 +222,20 @@ public class ElectionServiceForProposer implements ElectionForProposer {
                 continue;
             }
 
-            String curLogStr = "acceptor round[" + round + "],num[" + num + "],value[" + value + "],ip[" + paxosMember.getIp() + "],port["
+            String curLogStr = "accepter round[" + round + "],num[" + num + "],value[" + value + "],ip[" + paxosMember.getIp() + "],port["
                     + paxosMember.getPort() + "]";
 
             try {
                 ResponseFuture responseFuture = null;
                 if (CodeInfo.REQ_TYPE_ELECTION_FIRST_PHASE == phase) {
-
-                    System.out.println("【【【【【【【");
-
                     //第一阶段建议
                     responseFuture = this.sendFirstPhasePropotal(exchangeClient, round, num, value, paxosMember);
                 } else if (CodeInfo.REQ_TYPE_ELECTION_SECOND_PHASE == phase) {
                     //第二阶段建议
                     responseFuture = this.sendSecondPhasePropotal(exchangeClient, round, num, value, paxosMember);
                 } else {
-                    throw new IllegalArgumentException("不支持的选举阶段参数,sendElectionRequestToOtherMemberList");
+                    //不支持的选举阶段参数
+                    throw new IllegalArgumentException("nonsupport this election phase,sendElectionRequestToOtherMemberList");
                 }
                 futureList.add(responseFuture);
             } catch (Exception e) {
@@ -246,12 +243,18 @@ public class ElectionServiceForProposer implements ElectionForProposer {
             }
         }
 
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         /**
          * 开始解析结果
          */
         List<ElectionResponse> resList = new ArrayList<ElectionResponse>();
         for (ResponseFuture responseFuture : futureList) {
             try {
+                LOGGER.info("responseFuture"+responseFuture.get());
                 Object res = responseFuture.get();
                 Response remotingResponse = null;
                 if (res != null) {
@@ -335,7 +338,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
 
             return exchangeClient.sendAsyncSync(secondPhaseReqCommand);
         } catch (Exception e) {
-            LOGGER.error(">err,send secondPhase protocal to," + logStr, e);
+            LOGGER.error("err,send secondPhase protocal to," + logStr, e);
             return null;
         }
 
@@ -345,7 +348,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
     public boolean proposalSecondPhase(long round, long num, Object value) {
         String logStr = "num[" + num + "],value[" + value + "],round[" + round + "]";
 
-        LOGGER.info(">1.begin secondPhase," + logStr);
+        LOGGER.info("begin secondPhase," + logStr);
 
         //获取其它结点成员
         List<PaxosMember> otherMemberList = paxosStore.getOtherPaxosMemberList();
@@ -358,7 +361,7 @@ public class ElectionServiceForProposer implements ElectionForProposer {
         //当前结点自己先保存下自己的提议号
         ElectionResponse saveRes = paxosStore.saveAcceptSecondPhaseMaxNumAndValueForCurrentMember(round, num, value);
         if (saveRes.getCode().equals(CodeInfo.DENY_CODE)) {
-            LOGGER.info(">end secondPhase err,can not save maxFirstPhaseNum," + logStr);
+            LOGGER.info("end secondPhase err,can not save maxFirstPhaseNum," + logStr);
             return false;
         }
 

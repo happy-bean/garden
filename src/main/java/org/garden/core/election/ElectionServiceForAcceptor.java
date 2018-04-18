@@ -22,7 +22,6 @@ public class ElectionServiceForAcceptor implements ElectionForAcceptor {
 
     /**
      * 接收者接到一阶段请求
-     *
      */
     @Override
     public ElectionResponse processElectionRequestFirstPhase(ElectionRequest electionRequest) {
@@ -37,9 +36,8 @@ public class ElectionServiceForAcceptor implements ElectionForAcceptor {
 
         long electionRoundParam = electionRequest.getElectionRound();
         if (PaxosMemberStatus.NORMAL.getStatus() == currentMember.getStatus().get() && electionRoundSaved >= electionRoundParam) {
-            /**
-             * 当前结点状态是已选举完成状态且当前结点保存的选举轮数要大于等于传入的参数轮数，则拒绝该提议
-             */
+
+            //当前结点状态是已选举完成状态且当前结点保存的选举轮数要大于等于传入的参数轮数，则拒绝该提议
             LOGGER.error("electionData of firstPhase current member status is normal elected,param[" + logStr + "]");
             ElectionResponse response = RequestAndResponseUtil.composeFirstPahseElectionResponse(CodeInfo.DENY_CODE_FOR_HAS_LEADER,
                     maxAcceptFirstPhaseNum, maxAcceptSecondPhaseNum, maxAcceptSecondPhaseValue, realNumSaved, realValueSaved,
@@ -51,24 +49,18 @@ public class ElectionServiceForAcceptor implements ElectionForAcceptor {
                 maxAcceptFirstPhaseNum, maxAcceptSecondPhaseNum, maxAcceptSecondPhaseValue, realNumSaved, realValueSaved,
                 electionRoundSaved);
 
-        /**
-         * 保存一阶段提议号，底层会检查请求提议号与已经保存的一阶段提议号是否合法
-         */
+        //保存一阶段提议号，底层会检查请求提议号与已经保存的一阶段提议号是否合法
         long reqNum = electionRequest.getNum();
         ElectionResponse firstPhaseMaxNumSaveRes = paxosStore.saveAcceptFirstPhaseMaxNumForCurrentMember(reqNum);
         if (CodeInfo.DENY_CODE.equals(firstPhaseMaxNumSaveRes.getCode())) {
-            /**
-             * 当前已经保存的提议号大于请求的提议号则回复deny
-             */
+            //当前已经保存的提议号大于请求的提议号则回复deny
             LOGGER.debug("deny firstPhase election request,current maxAcceptFirstPhaseNum is bigger than num," + logStr
                     + ",maxAcceptFirstPhaseNum is[" + maxAcceptFirstPhaseNum + "]");
 
             return denyResponse;
         }
 
-        /**
-         * 都符合条件最终返回接受信息
-         */
+        //都符合条件最终返回接受信息
         return RequestAndResponseUtil.composeFirstPahseElectionResponse(CodeInfo.ACCEPT_CODE, maxAcceptFirstPhaseNum,
                 maxAcceptSecondPhaseNum, maxAcceptSecondPhaseValue, realNumSaved, realValueSaved, electionRoundSaved);
     }
@@ -92,9 +84,8 @@ public class ElectionServiceForAcceptor implements ElectionForAcceptor {
         long electionRoundParam = request.getElectionRound();
         long currentElectionRound = currentMember.getElectionInfo().getElectionRound();
         if (PaxosMemberStatus.NORMAL.getStatus() == currentMember.getStatus().get() && currentElectionRound >= electionRoundParam) {
-            /**
-             * 当前结点状态是已选举完成状态，则拒绝该提议，并且如果当前保存的已经选举成功的轮数大于等于传入的轮数，就告诉提议者当前结点已经选举完成
-             */
+
+            //当前结点状态是已选举完成状态，则拒绝该提议，并且如果当前保存的已经选举成功的轮数大于等于传入的轮数，就告诉提议者当前结点已经选举完成
             LOGGER.error("electionData of secondPhase current member status is normal elected,param[" + logStr + "]");
             return denyResponse;
         }
@@ -104,25 +95,21 @@ public class ElectionServiceForAcceptor implements ElectionForAcceptor {
          */
         long reqNum = request.getNum();
         if (maxAcceptFirstPhaseNum != null && maxAcceptFirstPhaseNum > reqNum) {
-            /**
-             * 当前已经保存的提议号大于请求的提议号则回复deny
-             */
+
+            //当前已经保存的提议号大于请求的提议号则回复deny
             LOGGER.debug("deny secondPhase election request,current maxAcceptFirstPhaseNum is bigger than num," + logStr
                     + ",maxAcceptFirstPhaseNum is[" + maxAcceptFirstPhaseNum + "]");
 
             return denyResponse;
         }
 
-        /**
-         * 全部成功后返回成功接受的消息
-         */
+        //全部成功后返回成功接受的消息
         return RequestAndResponseUtil.composeSecondPahseElectionResponse(CodeInfo.ACCEPT_CODE, maxAcceptFirstPhaseNum,
                 maxAcceptSecondPhaseNum, maxAcceptSecondPhaseValue);
     }
 
     /**
      * 接收到广播的选举结果
-     *
      */
     @Override
     public ElectionResultResponse processElectionResultRequest(ElectionResultRequest request) {
@@ -141,9 +128,7 @@ public class ElectionServiceForAcceptor implements ElectionForAcceptor {
             return failResponse;
         }
 
-        /**
-         * 保存结果成功后，响应发送者成功
-         */
+        //保存结果成功后，响应发送者成功
         LOGGER.info("succ save electionResult," + logStr);
         return RequestAndResponseUtil.composeElectionResultResponse(CodeInfo.SUCCESS_CODE);
     }
@@ -155,9 +140,7 @@ public class ElectionServiceForAcceptor implements ElectionForAcceptor {
         LOGGER.info("begin processAfterElectionSecondPhase," + logStr);
 
         if (!electionSuccessFlag) {
-            /**
-             * 选举失败，设置当前结点状态为初始状态，下次可以再提议
-             */
+            //选举失败，设置当前结点状态为初始状态，下次可以再提议
             paxosStore.updateCurrentMemberStatus(null, PaxosMemberStatus.INIT.getStatus());
             return false;
         }

@@ -1,6 +1,5 @@
 package org.garden;
 
-import com.garden.server.GardenServerCenter;
 import org.apache.log4j.Logger;
 import org.garden.bootstrap.GardenManager;
 
@@ -17,8 +16,6 @@ public class Garden implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(Garden.class);
 
-    private GardenServerCenter gardenServerCenter = new GardenServerCenter();
-
     public Garden() {
 
     }
@@ -29,8 +26,9 @@ public class Garden implements AutoCloseable {
      * @param
      */
     public void register() throws Exception {
-
+        //初始化服务
         new GardenManager().init();
+
         //先启动服务中心
         //gardenServerCenter.runServer();
     }
@@ -41,6 +39,6 @@ public class Garden implements AutoCloseable {
     }
 
     public static void main(String[] args) throws Exception {
-     new Garden().register();
+        new Garden().register();
     }
 }
