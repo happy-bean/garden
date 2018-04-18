@@ -2,6 +2,7 @@ package org.garden.core.election;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.log4j.Logger;
+import org.garden.conf.GardenConfig;
 import org.garden.core.paxos.*;
 import org.garden.enums.PaxosMemberRole;
 import org.garden.enums.PaxosMemberStatus;
@@ -249,7 +250,7 @@ public class ElectionProcessor {
     private static void writeLog(String data) {
         RandomAccessFile accessFile = null;
         try {
-            accessFile = new RandomAccessFile("/Users/zhenzuo.zzz/Documents/temp/out.log", "rw");
+            accessFile = new RandomAccessFile(GardenConfig.dataPath+"/garden.log", "rw");
             long length = accessFile.length();
             accessFile.seek(length);
 

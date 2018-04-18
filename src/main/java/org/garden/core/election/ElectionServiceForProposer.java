@@ -243,11 +243,6 @@ public class ElectionServiceForProposer implements ElectionForProposer {
             }
         }
 
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         /**
          * 开始解析结果
          */
