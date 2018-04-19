@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author wgt
@@ -13,9 +15,11 @@ public class Test {
     private static String url = "http://127.0.0.1:9030/test/index.html";
 
     public static void main(String[] args) throws IOException {
-        for (int i = 0; i < 10000; i++) {
-            Te te = new Te(i);
-            te.start();
+
+        ExecutorService es = Executors.newFixedThreadPool(2000);
+        Te te = new Te("test");
+        for (int i = 0; i < 200000; i++) {
+            es.execute(te);
         }
     }
 
@@ -24,8 +28,8 @@ public class Test {
         private Thread t;
         private String threadName;
 
-        Te(int name) {
-            threadName = String.valueOf(name);
+        Te(String name) {
+            threadName = name;
         }
 
         @Override
