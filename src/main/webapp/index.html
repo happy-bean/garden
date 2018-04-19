@@ -5,6 +5,7 @@
     <title>Title</title>
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js" type="text/javascript"></script>
+<script src="http://cdn.static.runoob.com/libs/jquery/1.10.2/jquery.min.js"></script>
 <body>
 
 <div>
@@ -24,92 +25,163 @@
             </div>
         </div>
 
-        <div id="concurrent" style="position: center;margin-top: 15px;">
-                <div style="float: left;width: 25%;height: 400px">
-                    <canvas id="myChart1"></canvas>
-                </div>
-                <div style="float: right;width: 25%;height: 400px">
-                    <canvas id="myChart2"></canvas>
-                </div>
-
-
-                <div style="float: left;width: 25%;height: 400px">
-                    <canvas id="myChart3"></canvas>
-                </div>
-                <div style="float: left;width: 25%;height: 400px">
-                    <canvas id="myChart4"></canvas>
-                </div>
+        <div id="concurrent1" style="position: center;margin-top: 15px;">
+            <div style="float: left;width: 25%;height: 400px">
+                <canvas id="myChart1"></canvas>
+            </div>
+            <div style="float: left;width: 25%;height: 400px">
+                <canvas id="myChart2"></canvas>
+            </div>
+            <div style="float: left;width: 25%;height: 400px">
+                <canvas id="myChart3"></canvas>
+            </div>
+            <div style="float: left;width: 25%;height: 400px">
+                <canvas id="myChart4"></canvas>
+            </div>
         </div>
 
     </div>
 </div>
 
 
-<script>
+<script type="text/javascript">
+
+    var data = new Array();
+    data[0] = [0, 0, 0, 0, 0, 0, 0];
+    data[1] = [0, 0, 0, 0, 0, 0, 0];
+    data[2] = [0, 0, 0, 0, 0, 0, 0];
+    data[3] = [0, 0, 0, 0, 0, 0, 0];
+    var label = new Array();
+    label[0] = "node-1";
+    label[1] = "node-2";
+    label[2] = "node-3";
+    label[3] = "node-4";
+    var labels = ["12:39:11", "12:39:12", "12:39:13", "12:39:14", "12:39:15", "12:39:16", "12:39:17"];
+
     var ctx1 = document.getElementById("myChart1");
     var ctx2 = document.getElementById("myChart2");
     var ctx3 = document.getElementById("myChart3");
     var ctx4 = document.getElementById("myChart4");
 
-    var myChart1 = new Chart(ctx1, {
-        "type": "line",
-        "data": {
-            "labels": ["January", "February", "March", "April", "May", "June", "July"],
-            "datasets": [{
-                "label": "My First Dataset",
-                "data": [65, 59, 80, 81, 56, 55, 40],
-                "fill": true,
-                "borderColor": "rgb(75, 192, 192)",
-                "lineTension": 0.1
-            }]
-        },
-        "options": {}
-    });
+    window.setInterval(function () {
+        new Chart(ctx1, {
+            "type": "line",
+            "data": {
+                "labels": labels,
+                "datasets": [{
+                    "label": label[0],
+                    "data": data[0],
+                    "fill": true,
+                    "borderColor": "rgb(75, 192, 192)",
+                    "lineTension": 0.1
+                }]
+            },
+            "options": {}
+        });
 
-    var myChart2 = new Chart(ctx2, {
-        "type": "line",
-        "data": {
-            "labels": ["January", "February", "March", "April", "May", "June", "July"],
-            "datasets": [{
-                "label": "My First Dataset",
-                "data": [65, 59, 80, 81, 56, 55, 40],
-                "fill": true,
-                "borderColor": "rgb(75, 192, 192)",
-                "lineTension": 0.1
-            }]
-        },
-        "options": {}
-    });
+        new Chart(ctx2, {
+            "type": "line",
+            "data": {
+                "labels": labels,
+                "datasets": [{
+                    "label": label[1],
+                    "data": data[1],
+                    "fill": true,
+                    "borderColor": "rgb(75, 192, 192)",
+                    "lineTension": 0.1
+                }]
+            },
+            "options": {}
+        });
 
-    var myChart3 = new Chart(ctx3, {
-        "type": "line",
-        "data": {
-            "labels": ["January", "February", "March", "April", "May", "June", "July"],
-            "datasets": [{
-                "label": "My First Dataset",
-                "data": [65, 59, 80, 81, 56, 55, 40],
-                "fill": true,
-                "borderColor": "rgb(75, 192, 192)",
-                "lineTension": 0.1
-            }]
-        },
-        "options": {}
-    });
+        new Chart(ctx3, {
+            "type": "line",
+            "data": {
+                "labels": labels,
+                "datasets": [{
+                    "label": label[2],
+                    "data": data[2],
+                    "fill": true,
+                    "borderColor": "rgb(75, 192, 192)",
+                    "lineTension": 0.1
+                }]
+            },
+            "options": {}
+        });
 
-    var myChart4 = new Chart(ctx4, {
-        "type": "line",
-        "data": {
-            "labels": ["January", "February", "March", "April", "May", "June", "July"],
-            "datasets": [{
-                "label": "My First Dataset",
-                "data": [65, 59, 80, 81, 56, 55, 40],
-                "fill": true,
-                "borderColor": "rgb(75, 192, 192)",
-                "lineTension": 0.1
-            }]
-        },
-        "options": {}
-    });
+        new Chart(ctx4, {
+            "type": "line",
+            "data": {
+                "labels": labels,
+                "datasets": [{
+                    "label": label[3],
+                    "data": data[3],
+                    "fill": true,
+                    "borderColor": "rgb(75, 192, 192)",
+                    "lineTension": 0.1
+                }]
+            },
+            "options": {}
+        });
+    }, 1000);
+
+    var socket;
+    if (!window.WebSocket) {
+        window.WebSocket = window.WebSocket || window.MozWebSocket;
+    }
+
+    if (window.WebSocket) {
+        socket = new WebSocket("ws://localhost:9030/websocket");
+        socket.onmessage = function (ev) {
+            var response = $.trim(ev.data).replace(/[\r\n]/g, "");
+            console.log(response + "==")
+            var json = JSON.parse(response);
+            var time = json.times;
+            var test = json.conmap;
+
+            var a=0;
+            for (key1 in test) {
+                var b= 0;
+                label[a]=key1;
+                var tmp = [0, 0, 0, 0, 0, 0, 0];
+                for (key2 in test[key1]){
+                    tmp[b]=test[key1][key2]
+                    b++;
+                }
+                data[a]=tmp;
+                a++;
+            }
+
+            labels = time;
+        };
+        socket.onopen = function (ev) {
+
+        };
+        socket.onclose = function (ev) {
+
+        };
+    } else {
+        alert("浏览器不支持websocket");
+    }
+
+    window.onload = function () {
+
+        setTimeout(function () {
+            window.setInterval(function () {
+                if (!window.WebSocket) {
+                    return;
+                }
+
+                if (socket.readyState == WebSocket.OPEN) {
+                    socket.send('check');
+                } else {
+                    alert("websocket连接失败");
+                    socket.close()
+                    socket.onopen;
+                }
+            },1000);
+        }, 1000);
+    }
 </script>
 
 </body>

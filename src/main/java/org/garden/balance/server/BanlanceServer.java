@@ -19,7 +19,7 @@ public class BanlanceServer implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BanlanceServer.class);
 
-    private static final int PORT = 8888;
+    private static final int PORT = 9030;
 
     private EventLoopGroup bossGroup;
     private EventLoopGroup workGroup;

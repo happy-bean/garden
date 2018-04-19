@@ -1,23 +1,21 @@
 package org.garden.balance.server;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
-import org.garden.remoting.Response;
+import io.netty.handler.codec.http.websocketx.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.sun.deploy.net.HttpRequest.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
@@ -36,7 +34,14 @@ public class HttpSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     public static Logger LOGGER = LoggerFactory.getLogger(HttpSocketHandler.class);
 
+
+    private WebSocketServerHandshaker handshaker;
+
+    private static final String WEB_SOCKET_URL = "ws://localhost:9030/websocket";
+
+
     LoadBalance loadBalance = new LoadBalance();
+
     /**
      * 服务端处理客户端http请求的核心方法
      *
@@ -46,7 +51,15 @@ public class HttpSocketHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
 
-        handHttpRequest(ctx, msg);
+        //处理客户端向服务端发起http请求的业务
+        if (msg instanceof FullHttpMessage) {
+            handHttpRequest(ctx, msg);
+        }
+
+        //处理websocket连接业务
+        else if (msg instanceof WebSocketFrame) {
+            handWebsocketFrame(ctx, (WebSocketFrame) msg);
+        }
     }
 
     /**
@@ -86,6 +99,20 @@ public class HttpSocketHandler extends SimpleChannelInboundHandler<Object> {
 
             ctx.writeAndFlush(response);
         } else {
+            FullHttpRequest request = (FullHttpRequest) msg;
+
+            if (request.decoderResult().isSuccess() && ("websocket".equals(request.headers().get("Upgrade")))) {
+                //工厂类对象
+                WebSocketServerHandshakerFactory factory = new WebSocketServerHandshakerFactory(WEB_SOCKET_URL, null, false);
+                handshaker = factory.newHandshaker((FullHttpRequest) msg);
+                if (handshaker == null) {
+                    WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
+                } else {
+                    handshaker.handshake(ctx.channel(), (FullHttpRequest) msg);
+                }
+                return;
+            }
+
             diapathcer(ctx, msg);
         }
     }
@@ -96,17 +123,11 @@ public class HttpSocketHandler extends SimpleChannelInboundHandler<Object> {
     private void diapathcer(ChannelHandlerContext ctx, Object msg) throws UnsupportedEncodingException {
 
         FullHttpRequest request = (FullHttpRequest) msg;
-
-        System.out.println("uri=" + request.uri());
-        System.out.println("method=" + request.method());
-        System.out.println("protocolVersion=" + request.protocolVersion());
-
-        System.out.println(request.headers().iterator().next().getKey());
-
-
         try {
             int hashCode = "garden".hashCode();
-            String basePath = "http://" + loadBalance.getServer(hashCode);
+            String ipAndPort = loadBalance.getServer(hashCode);
+            NodeHealth.addConcurrent(ipAndPort.split(":")[0]);
+            String basePath = "http://" + ipAndPort;
             String urlString = basePath + request.uri();
             URL url = new URL(urlString);
             LOGGER.info("fetching >" + url.toString());
@@ -172,5 +193,48 @@ public class HttpSocketHandler extends SimpleChannelInboundHandler<Object> {
         }
 
     }
+
+    /**
+     * 处理客户端与服务端之间websocket业务
+     *
+     * @param ctx
+     * @param frame
+     */
+    private void handWebsocketFrame(ChannelHandlerContext ctx, WebSocketFrame frame) {
+        //判断是否是关闭websocket的指令
+        if (frame instanceof CloseWebSocketFrame) {
+            handshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
+        }
+
+        //判断是否是ping消息
+        if (frame instanceof PingWebSocketFrame) {
+            ctx.channel().write(new PongWebSocketFrame(frame.content().retain()));
+            return;
+        }
+
+        //判断是否是二进制消息，如果是，抛出异常
+        if (!(frame instanceof TextWebSocketFrame)) {
+            LOGGER.info("不支持二进制消息");
+            return;
+        }
+
+        //获取客户端向服务端发送的消息
+        String request = ((TextWebSocketFrame) frame).text();
+        LOGGER.info(request);
+
+        //返回应答消息
+        //获取客户端向服务端发送的消息
+        Map<String, Object> map = new HashMap<>();
+        map.put("times", NodeHealth.getTimeList());
+
+        Map<String, LinkedHashMap<String, Integer>> mapMap = NodeHealth.getConcurrentHashMap();
+
+        map.put("conmap", NodeHealth.getConcurrentHashMap());
+        String respStr = JSON.toJSONString(map, SerializerFeature.DisableCircularReferenceDetect);
+        TextWebSocketFrame webSocketFrame = new TextWebSocketFrame(respStr);
+        //返回当前客户端
+        ctx.writeAndFlush(webSocketFrame);
+    }
+
 
 }
