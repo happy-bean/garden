@@ -34,6 +34,8 @@ public class LoadBalance {
             server = WeightRandom.getServer(serverList, portList, weightList);
         } else if ("weightRoundRobin".equals(type)) {
             server = WeightRoundRobin.getServer(serverList, portList, weightList);
+        } else if ("consistencyHash".equals(type)) {
+            server = ConsistencyHash.getServer(serverList, portList);
         } else {
             server = Random.getServer(serverList, portList);
         }

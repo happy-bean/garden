@@ -1,6 +1,6 @@
 package org.garden.balance.server;
 
-import com.garden.Garden;
+import org.garden.Garden;
 import org.garden.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

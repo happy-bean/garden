@@ -16,7 +16,7 @@ public class Test {
 
     public static void main(String[] args) throws IOException {
 
-        ExecutorService es = Executors.newFixedThreadPool(2000);
+        ExecutorService es = Executors.newFixedThreadPool(20);
         Te te = new Te("test");
         for (int i = 0; i < 200000; i++) {
             es.execute(te);

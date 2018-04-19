@@ -15,9 +15,16 @@ import javax.annotation.PostConstruct;
  * @date 2018-04-18
  * @description 负载均衡服务
  **/
-public class BanlanceServer implements AutoCloseable {
+public class BalanceServer implements AutoCloseable,Runnable  {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BanlanceServer.class);
+    private Thread t;
+    private String threadName;
+
+    public BalanceServer(String name) {
+        threadName = name;
+    }
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BalanceServer.class);
 
     private static final int PORT = 9030;
 
@@ -57,8 +64,17 @@ public class BanlanceServer implements AutoCloseable {
         }
     }
 
-    public static void main(String[] args) {
-        new BanlanceServer().startServer();
+    @Override
+    public void run() {
+        startServer();
+    }
+
+
+    public void start() {
+        if (t == null) {
+            t = new Thread(this, threadName);
+            t.start();
+        }
     }
 }
 

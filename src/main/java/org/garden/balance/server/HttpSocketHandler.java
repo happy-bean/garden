@@ -17,7 +17,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 
-import static com.sun.deploy.net.HttpRequest.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;

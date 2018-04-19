@@ -1,6 +1,7 @@
 package org.garden;
 
 import org.apache.log4j.Logger;
+import org.garden.balance.server.BalanceServer;
 import org.garden.bootstrap.GardenManager;
 
 
@@ -16,6 +17,10 @@ public class Garden implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(Garden.class);
 
+    private boolean balance = false;
+
+    private boolean paxos =false;
+
     public Garden() {
 
     }
@@ -26,11 +31,15 @@ public class Garden implements AutoCloseable {
      * @param
      */
     public void register() throws Exception {
-        //初始化服务
-        new GardenManager().init();
+        //负载均衡服务
+        if(balance) {
+            new BalanceServer("balance").start();
+        }
 
-        //先启动服务中心
-        //gardenServerCenter.runServer();
+        //初始化服务
+        if(paxos) {
+            new GardenManager().init();
+        }
     }
 
     @Override
@@ -38,7 +47,27 @@ public class Garden implements AutoCloseable {
         //gardenServerCenter.close();
     }
 
+    public boolean isBalance() {
+        return balance;
+    }
+
+    public Garden setBalance(boolean balance) {
+        this.balance = balance;
+        return this;
+    }
+
+    public boolean isPaxos() {
+        return paxos;
+    }
+
+    public Garden setPaxos(boolean paxos) {
+        this.paxos = paxos;
+        return this;
+    }
+
     public static void main(String[] args) throws Exception {
-        new Garden().register();
+
+        //true表示启动该服务
+        new Garden().setBalance(true).setPaxos(true).register();
     }
 }

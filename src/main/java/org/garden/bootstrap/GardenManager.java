@@ -73,7 +73,7 @@ public class GardenManager {
 
 
         //设置paxosCore 注册到paxosMember服务中
-        PaxosCore paxosCore = new PaxosCoreComponent(); //
+        PaxosCore paxosCore = new PaxosCoreComponent();
         paxosCore.setCurrentPaxosMember(currentMember);
         paxosCore.setOtherPaxosMemberList(this.getOtherPaxMemberList(clusterMemberList));
 
@@ -86,7 +86,6 @@ public class GardenManager {
         UpStreamHandler upStreamHandler = new UpStreamHandler(paxosCore);
         heartBeatProcessor.start(upStreamHandler);
 
-        System.out.println("========");
         //开启选举处理器
         UpStreamHandler upStreamHandlerForElection = new UpStreamHandler(paxosCore);
         ElectionProcessor electionProcessor = new ElectionProcessor();
